@@ -73,10 +73,11 @@ def script = {
                     sh "docker login -u '$USERNAME' -p '$PASSWORD' ${env.DOCKER_REGISTRY ?: 'registry-1.docker.io'}"
                 }
                 
+                def CMD_DEFAULT = env.CMD ?: "skaffold ${env.SKAFFOLD_CMD ?: 'build'} ${env.SKAFFOLD_OPTS ?: '--dry-run'}"
                 sh """
                     # skaffold run -f skaffold-release.yaml --profile develop
                     # skaffold ${env.SKAFFOLD_CMD ?: 'build'} ${env.SKAFFOLD_OPTS ?: '--dry-run'}
-                    ${env.CMD ?: skaffold ${env.SKAFFOLD_CMD ?: 'build'} ${env.SKAFFOLD_OPTS ?: '--dry-run'}}
+                    ${ env.CMD ?: CMD_DEFAULT }
                 """
             }
         }

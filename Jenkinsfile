@@ -22,6 +22,7 @@ SKAFFOLD_CMD=build
 SKAFFOLD_OPTS=--dry-run
 
 # Pipeline
+# skaffold ${SKAFFOLD_CMD} ${SKAFFOLD_OPTS}
 CMD=skaffold build --dry-run
 */
 
@@ -33,9 +34,11 @@ def spec = [
     serviceAccount: env.SERVICE_ACCOUNT ?: "default",
     containers: []
         << containerTemplate(name: 'skaffold', image: 'gcr.io/k8s-skaffold/skaffold:v1.15.0', ttyEnabled: true, command: 'cat', resourceRequestCpu: '1', resourceRequestMemory: '1Gi'),
-    volumes: []
-        << configMapVolume(mountPath: "${VOLUME_CONFIG_MAP_MOUNT}", configMapName: "${VOLUME_CONFIG_MAP_NAME}")
-    << persistentVolumeClaim(mountPath: "${VOLUME_PVC_MOUNT}", claimName: "${VOLUME_PVC_NAME}")
+    volumes: ([]
+        // TODO: Short Hand
+        << (!env?.VOLUME_CONFIG_MAP_NAME || !env?.VOLUME_CONFIG_MAP_MOUNT ? null : configMapVolume(mountPath: "${VOLUME_CONFIG_MAP_MOUNT}", configMapName: "${VOLUME_CONFIG_MAP_NAME}"))
+        << (!env?.VOLUME_PVC_NAME || !env?.VOLUME_PVC_MOUNT ? null : persistentVolumeClaim(mountPath: "${VOLUME_PVC_MOUNT}", claimName: "${VOLUME_PVC_NAME}"))
+    ) - null // Filter null(s).
 ]
 
 /*
@@ -73,10 +76,11 @@ def script = {
                     sh "docker login -u '$USERNAME' -p '$PASSWORD' ${env.DOCKER_REGISTRY ?: 'registry-1.docker.io'}"
                 }
                 
+                def CMD_DEFAULT = env.CMD ?: "skaffold ${env.SKAFFOLD_CMD ?: 'build'} ${env.SKAFFOLD_OPTS ?: '--dry-run'}"
                 sh """
                     # skaffold run -f skaffold-release.yaml --profile develop
                     # skaffold ${env.SKAFFOLD_CMD ?: 'build'} ${env.SKAFFOLD_OPTS ?: '--dry-run'}
-                    ${env.CMD ?: skaffold ${env.SKAFFOLD_CMD ?: 'build'} ${env.SKAFFOLD_OPTS ?: '--dry-run'}}
+                    ${ env.CMD ?: CMD_DEFAULT }
                 """
             }
         }

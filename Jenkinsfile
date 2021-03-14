@@ -22,6 +22,7 @@ SKAFFOLD_CMD=build
 SKAFFOLD_OPTS=--dry-run
 
 # Pipeline
+# skaffold ${SKAFFOLD_CMD} ${SKAFFOLD_OPTS}
 CMD=skaffold build --dry-run
 */
 

@@ -1,12 +1,28 @@
 /*
-# env
+# for Jenkins Agent Pod
+VOLUME_CONFIG_MAP_NAME=
+VOLUME_CONFIG_MAP_MOUNT=
+VOLUME_PVC_NAME=
+VOLUME_PVC_MOUNT=
 SERVICE_ACCOUNT=default
+
+# for Build
+# - Gradle
+GRADLE_USER_HOME=
+# - Docker
 DOCKER_CRED=DOCKER_CRED
 DOCKER_REGISTRY=registry-1.docker.io
+
+# Deploy
+# - kubectl
+K8S_NAMESPACE=default
+KUBECONFIG=/var/secret/kube.conf
+# - Skaffold
 SKAFFOLD_CMD=build
 SKAFFOLD_OPTS=--dry-run
 
-GRADLE_USER_HOME=/root/gradle/${JOB_NAME}
+# Pipeline
+CMD=skaffold build --dry-run
 */
 
 /*
@@ -18,7 +34,8 @@ def spec = [
     containers: []
         << containerTemplate(name: 'skaffold', image: 'gcr.io/k8s-skaffold/skaffold:v1.15.0', ttyEnabled: true, command: 'cat', resourceRequestCpu: '1', resourceRequestMemory: '1Gi'),
     volumes: []
-        << persistentVolumeClaim(mountPath: '/root/gradle', claimName: 'zcp-jenkins-mvn-repo')
+        << configMapVolume(mountPath: "${VOLUME_CONFIG_MAP_MOUNT}", configMapName: "${VOLUME_CONFIG_MAP_NAME}")
+    << persistentVolumeClaim(mountPath: "${VOLUME_PVC_MOUNT}", claimName: "${VOLUME_PVC_NAME}")
 ]
 
 /*
@@ -58,7 +75,8 @@ def script = {
                 
                 sh """
                     # skaffold run -f skaffold-release.yaml --profile develop
-                    skaffold ${env.SKAFFOLD_CMD ?: 'build'} ${env.SKAFFOLD_OPTS ?: '--dry-run'}
+                    # skaffold ${env.SKAFFOLD_CMD ?: 'build'} ${env.SKAFFOLD_OPTS ?: '--dry-run'}
+                    ${env.CMD ?: skaffold ${env.SKAFFOLD_CMD ?: 'build'} ${env.SKAFFOLD_OPTS ?: '--dry-run'}}
                 """
             }
         }

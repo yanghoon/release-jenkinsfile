@@ -35,7 +35,7 @@ def spec = [
         << containerTemplate(name: 'skaffold', image: 'gcr.io/k8s-skaffold/skaffold:v1.15.0', ttyEnabled: true, command: 'cat', resourceRequestCpu: '1', resourceRequestMemory: '1Gi'),
     volumes: ([]
         << (!VOLUME_CONFIG_MAP_NAME || !VOLUME_CONFIG_MAP_MOUNT ? null : configMapVolume(mountPath: "${VOLUME_CONFIG_MAP_MOUNT}", configMapName: "${VOLUME_CONFIG_MAP_NAME}"))
-        << (!VOLUME_PVC_NAME || !VOLUME_PVC_MOUNT ? null : persistentVolumeClaim(mountPath: "${VOLUME_PVC_MOUNT}", claimName: "${VOLUME_PVC_NAME}")
+        << (!VOLUME_PVC_NAME || !VOLUME_PVC_MOUNT ? null : persistentVolumeClaim(mountPath: "${VOLUME_PVC_MOUNT}", claimName: "${VOLUME_PVC_NAME}"))
     ).findAll() // filter null(s).
 ]
 
